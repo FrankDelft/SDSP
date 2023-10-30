@@ -13,8 +13,10 @@ noisy_speech=zeros(N_noise+N_clean,1);
 noisy_speech(1:N_noise)=noise(1:N_noise);
 noisy_speech(N_noise+1:N_clean+N_noise)=clean(1:N_clean)+noise(N_noise+1:N_clean+N_noise);
 
-L=600;
+%% 
 
+%setup windows and window length
+L=600;
 win=ones(L,1);
 
 SNR=snr(noisy_speech, noise(1:N_clean+N_noise));
@@ -22,11 +24,11 @@ SNR=snr(noisy_speech, noise(1:N_clean+N_noise));
 SNR2=snr(spectral_subtract_enhanced, noise(1:N_clean+N_noise)); 
 audiowrite("sdspProj\signals\spectral sub\spec1.wav",real(spectral_subtract_enhanced),fs);
 
+%% 
 
 
 % Create a figure
 figure;
-
 % Create the first subplot
 subplot(2, 2, 1);  % 2 rows, 2 columns, first subplot
 plot(real(spectral_subtract_enhanced));
@@ -82,7 +84,7 @@ function [reconstructed_signal, psd_noise_est] = spectral_subtraction(audioData,
         psd_speech_frame = (1/U)*(1 / L) .* abs(fft_segment).^2;
         phases_frame = angle(fft_segment);  % Store phase information
 
-        alpha=4;
+        alpha=2;
         beta=0.018;
     
         spectral_sub = psd_speech_frame-alpha.*psd_noise_est';
