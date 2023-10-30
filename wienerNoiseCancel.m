@@ -4,6 +4,7 @@ clear;close all;
 [noise,fs2] = audioread("Speech_shaped_noise.wav");
 [babble_noise,fs3] = audioread("babble_noise.wav");
 white_noise = wgn(633000,1,0);
+echo_noise = [zeros(500,1);0.9.*clean]+0.0001.*wgn(500+length(clean),1,0);
 t = [1:633000]';
 non_stationary_noise = 1/2*t/200000 + (t/200000).*randn(size(t));
 compound_noise = noise(1:633000)+white_noise*0.05+0.2*sin(t)+0.3*sin(3.*t);
@@ -14,8 +15,14 @@ clean_speech=compose_signal(clean,zeros(633000,1));
 % construct the noisy signals
 noise_speech_signal=compose_signal(clean,noise);
 babble_speech_signal=compose_signal(clean,babble_noise);
-white_noise_speech_signal=compose_signal(clean,white_noise);
+echo_noise_speech_signal=compose_signal(clean,echo_noise);
 non_stationary_noise_speech_signal=compose_signal(clean,non_stationary_noise);
+
+% save compound signals
+audiowrite('./signals/noise_cancel/speech_shaped_noise_speech_signal.wav', noise_speech_signal, fs)
+audiowrite('./signals/noise_cancel/babble_speech_signal.wav', babble_speech_signal, fs)
+audiowrite('./signals/noise_cancel/echo_noise_speech_signal.wav', echo_noise_speech_signal, fs)
+audiowrite('./signals/noise_cancel/non_stationary_noise_speech_signal.wav', non_stationary_noise_speech_signal, fs)
 
 L=600;
 
@@ -29,7 +36,7 @@ plot(noise)
 subplot(6,3,7)
 plot(babble_noise)
 subplot(6,3,10)
-plot(white_noise)
+plot(echo_noise)
 subplot(6,3,13)
 plot(non_stationary_noise)
 subplot(6,3,16)
@@ -41,50 +48,67 @@ plot(noise_speech_signal)
 subplot(6,3,8)
 plot(babble_speech_signal)
 subplot(6,3,11)
-plot(white_noise_speech_signal)
+plot(echo_noise_speech_signal)
 subplot(6,3,14)
 plot(non_stationary_noise_speech_signal)
 subplot(6,3,17)
 plot(noise_speech_signal)
 
+scores = zeros(2,10);
+
 % Perform noise cancelation and print metrics
 disp('Speech shaped noise results before filtering')
-metrics(noise_speech_signal, clean_speech);
+[RMSE, SNR] = metrics(noise_speech_signal, clean_speech);
+[scores(1,[1,2])] = [RMSE, SNR];
 n_c=noiseCancel(noise_speech_signal, noise, L, 0.0);
+audiowrite('./signals/noise_cancel/noise_cancelation_speech_shaped_noise.wav', n_c, fs);
 disp('Speech shaped noise results after filtering')
-metrics(n_c, clean_speech);
+[RMSE, SNR] = metrics(n_c, clean_speech);
+[scores(2,[1,2])] = [RMSE, SNR];
 subplot(6,3,6)
 plot(n_c)
 
 disp('Babble noise results before filtering')
-metrics(babble_speech_signal, clean_speech);
+[RMSE, SNR] = metrics(babble_speech_signal, clean_speech);
+[scores(1,[3,4])] = [RMSE, SNR];
 n_c=noiseCancel(babble_speech_signal, babble_noise, L, 0.0);
+audiowrite('./signals/noise_cancel/noise_cancelation_babble_noise.wav', n_c, fs)
 disp('Babble noise results after filtering')
-metrics(n_c, clean_speech);
+[RMSE, SNR] = metrics(n_c, clean_speech);
+[scores(2,[3,4])] = [RMSE, SNR];
 subplot(6,3,9)
 plot(n_c)
 
-disp('white noise results before filtering')
-metrics(white_noise_speech_signal, clean_speech);
-n_c=noiseCancel(white_noise_speech_signal, white_noise, L, 0.0);
-disp('white noise results after filtering')
-metrics(n_c, clean_speech);
+disp('echo noise results before filtering')
+[RMSE, SNR] = metrics(echo_noise_speech_signal, clean_speech);
+[scores(1,[5,6])] = [RMSE, SNR];
+n_c=noiseCancel(echo_noise_speech_signal, echo_noise, L, 0.0);
+audiowrite('./signals/noise_cancel/noise_cancelation_echo_noise.wav', n_c, fs)
+disp('echo noise results after filtering')
+[RMSE, SNR] = metrics(n_c, clean_speech);
+[scores(2,[5,6])] = [RMSE, SNR];
 subplot(6,3,12)
 plot(n_c)
 
 disp('non stationary noise results before filtering')
-metrics(non_stationary_noise_speech_signal, clean_speech);
+[RMSE, SNR] = metrics(non_stationary_noise_speech_signal, clean_speech);
+[scores(1,[7,8])] = [RMSE, SNR];
 n_c=noiseCancel(non_stationary_noise_speech_signal, non_stationary_noise, L, 0.0);
+audiowrite('./signals/noise_cancel/noise_cancelation_non_stationary_noise.wav', n_c, fs)
 disp('non stationary noise results after filtering')
-metrics(n_c, clean_speech);
+[RMSE, SNR] = metrics(n_c, clean_speech);
+[scores(2,[7,8])] = [RMSE, SNR];
 subplot(6,3,15)
 plot(n_c)
 
 disp('compound noise results before filtering')
-metrics(noise_speech_signal, clean_speech);
+[RMSE, SNR] = metrics(noise_speech_signal, clean_speech);
+[scores(1,[9,10])] = [RMSE, SNR];
 n_c=noiseCancel(noise_speech_signal, compound_noise, L, 0.0);
+audiowrite('./signals/noise_cancel/noise_cancelation_compuound_noise.wav', n_c, fs)
 disp('compound noise results after filtering')
-metrics(n_c, clean_speech);
+[RMSE, SNR] = metrics(n_c, clean_speech);
+[scores(2,[9,10])] = [RMSE, SNR];
 subplot(6,3,18)
 plot(n_c)
 
