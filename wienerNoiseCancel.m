@@ -27,8 +27,9 @@ audiowrite('./signals/noise_cancel/babble_speech_signal.wav', babble_speech_sign
 audiowrite('./signals/noise_cancel/echo_noise_speech_signal.wav', [echo_noise_speech_signal;wgn(700,1,0)], fs)
 audiowrite('./signals/noise_cancel/non_stationary_noise_speech_signal.wav', non_stationary_noise_speech_signal, fs)
 
-L=600;
-
+L=640;
+fig=figure;
+set(fig, 'Position', [50, 50,1700, 1200]);
 % plot clean speech
 subplot(6,3,[1,2,3])
 plot(clean_speech)
@@ -147,7 +148,7 @@ plot(n_c)
 title('Noise Cancel Filter (cancel compound noise from noisy signal)');
 xlabel('Sample (n)')
 
-
+saveas(fig,'./signals/noise_cancel/signals.png')
 
 
 function noiseCancelled = noiseCancel(audioData, noiseData, L, Overlap)

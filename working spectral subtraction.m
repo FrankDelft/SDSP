@@ -23,12 +23,16 @@ babble_speech_signal=compose_signal(clean,babble_noise,length_noise_seconds,fs);
 echo_noise_speech_signal=[clean;zeros(2000,1)]+echo_noise;
 non_stationary_noise_speech_signal=compose_signal(clean,non_stationary_noise,length_noise_seconds,fs);
 
-
 %% 
 
 %setup windows and window length
-L=700;
-win=ones(L,1);
+L=640;
+%win=ones(L,1);
+%win=hann(L);
+win=hamming(L);
+%win=bartlett(L);
+
+
 
 alpha=3;
 beta=0.025;
@@ -37,9 +41,9 @@ N_noise=(fs)*length_noise_seconds;
 N_clean=500000;
 spectral_subtract_enhanced=spectral_subtraction(noise_speech_signal,N_noise,L,0.5,win, alpha,beta);
 
-audiowrite(alpha+"_"+beta+".wav",real(spectral_subtract_enhanced),fs);
+audiowrite("bart.wav",spectral_subtract_enhanced,fs);
 
-metrics(spectral_subtract_enhanced(N_noise+1:end), clean(1:N_clean));
+%metrics(spectral_subtract_enhanced(N_noise+1:end), clean(1:N_clean));
 
 %% 
 
@@ -51,34 +55,35 @@ audiowrite('./signals/spectral sub/echo_noise_speech_signal.wav', echo_noise_spe
 audiowrite('./signals/spectral sub/non_stationary_noise_speech_signal.wav', non_stationary_noise_speech_signal, fs)
 
 
+%setup figure for subplots
+fig=figure;
+set(fig, 'Position', [50, 50,1200, 1200]);
+
+
+
 % plot clean speech
-subplot(6,2,[1,2])
+subplot(5,2,[1,2])
 plot(clean_speech)
 title('Clean Speech');
 xlabel('Sample (n)')
 
 % plot noisy signal
-subplot(6,2,3)
+subplot(5,2,3)
 plot(noise_speech_signal)
 title('Clean + Stationary Noise');
 xlabel('Sample (n)')
-subplot(6,2,5)
+subplot(5,2,5)
 plot(babble_speech_signal)
 title('Clean + Babble Noise');
 xlabel('Sample (n)')
-subplot(6,2,7)
-plot(echo_noise_speech_signal)
+subplot(5,2,7)
+plot(echo_noise_speech_signal(50000:end))
 title('Clean + Echo Noise');
 xlabel('Sample (n)')
-subplot(6,2,9)
+subplot(5,2,9)
 plot(non_stationary_noise_speech_signal)
 title('Clean + Non Stationary Noise');
 xlabel('Sample (n)')
-subplot(6,2,11)
-plot(noise_speech_signal)
-title('Clean + Stationary Noise');
-xlabel('Sample (n)')
-
 
 scores = zeros(2,10);
 
@@ -91,9 +96,9 @@ audiowrite('./signals/noise_cancel/noise_cancelation_speech_shaped_noise.wav', s
 disp('Speech shaped noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[1,2])] = [RMSE, SNR];
-subplot(6,2,4)
+subplot(5,2,4)
 plot(s_s)
-title('Speech Shaped Noise');
+title('Spectral subtraction of estimated Stationary Noise from noisy signal');
 xlabel('Sample (n)')
 
 disp('Babble noise results before filtering')
@@ -104,22 +109,22 @@ audiowrite('./signals/noise_cancel/noise_cancelation_babble_noise.wav', s_s, fs)
 disp('Babble noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[3,4])] = [RMSE, SNR];
-subplot(6,2,6)
+subplot(5,2,6)
 plot(s_s)
-title('Babble Noise');
+title('Spectral subtraction of estimated babble noise from noisy signal');
 xlabel('Sample (n)')
 
 disp('echo noise results before filtering')
-[RMSE, SNR] = metrics(echo_noise_speech_signal, [clean;zeros(2000,1)]);
+[RMSE, SNR] = metrics(echo_noise_speech_signal(50000:end), [clean(50000:end);zeros(2000,1)]);
 [scores(1,[5,6])] = [RMSE, SNR];
-s_s = spectral_subtraction(echo_noise_speech_signal,N_noise, L, 0.5,win,alpha,beta);
+s_s = spectral_subtraction(echo_noise_speech_signal(50000:end),N_noise, L, 0.5,win,alpha,beta);
 audiowrite('./signals/noise_cancel/noise_cancelation_echo_noise.wav', s_s, fs);
 disp('echo noise results after filtering')
-[RMSE, SNR] = metrics(s_s, [clean;zeros(2000,1)]);
+[RMSE, SNR] = metrics(s_s, [clean(50000:end);zeros(2000,1)]);
 [scores(2,[5,6])] = [RMSE, SNR];
-subplot(6,2,8)
+subplot(5,2,8)
 plot(s_s)
-title('Echo Noise');
+title('Spectral subtraction of estimated echo noise from noisy signal');
 xlabel('Sample (n)')
 
 disp('non-stationary noise results before filtering')
@@ -130,23 +135,19 @@ audiowrite('./signals/noise_cancel/noise_cancelation_non_stationary_noise.wav', 
 disp('non-stationary noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[7,8])] = [RMSE, SNR];
-subplot(6,2,10)
+subplot(5,2,10)
 plot(s_s)
-title('Non-Stationary Noise');
+title('Spectral subtraction of estimated Non-Stationary noise from noisy signal');
 xlabel('Sample (n)')
 
-disp('compound noise results before filtering')
-[RMSE, SNR] = metrics(noise_speech_signal, clean_speech);
-[scores(1,[9,10])] = [RMSE, SNR];
-s_s = spectral_subtraction(noise_speech_signal,N_noise, L, 0.5,win,alpha,beta);
-audiowrite('./signals/noise_cancel/noise_cancelatios_sompuound_noise.wav', s_s, fs);
-disp('compound noise results after filtering')
-[RMSE, SNR] = metrics(s_s, clean_speech);
-[scores(2,[9,10])] = [RMSE, SNR];
-subplot(6,2,12)
-plot(s_s)
-title('Compound Noise');
-xlabel('Sample (n)')
+    subplot(5, 2, [1,2]); % Select the i-th subplot
+    xlim([0, 530000]); % Set x-axis limits for the current subplot
+for i = 3:10 % Adjust this to the number of subplots in your figure
+    subplot(5, 2, i); % Select the i-th subplot
+    xlim([0, 530000]); % Set x-axis limits for the current subplot
+end
+
+saveas(fig,'./signals/spectral sub/signals.png')
 
 
 function reconstructed_signal = spectral_subtraction(audioData, noise_length_start, L,Overlap,window, alpha, beta)
@@ -155,7 +156,7 @@ function reconstructed_signal = spectral_subtraction(audioData, noise_length_sta
     D=floor(L*(1-Overlap));
     K=floor((N-L+D)/D);
     %calculate energy of the window
-    U=sum(window.^2).*1/length(window);
+    U=sum(window.^2).*1/length(window)
     
     %estimate noise based on starting noise samples
     psd_noise_est=welch(audioData(1:noise_length_start),L,0.5,window);
@@ -176,12 +177,12 @@ function reconstructed_signal = spectral_subtraction(audioData, noise_length_sta
     
         spectral_sub = psd_speech_frame-alpha.*psd_noise_est';
         factor_reduction = beta.*(psd_noise_est');
-        %remove musical noise
+        %reduce musical noise
         enhanced_psd = max(spectral_sub,factor_reduction);
 
         %now to reconstruct the speech signal
-        enhanced_frame=ifft(sqrt(enhanced_psd.*(U*L)).*exp(phases_frame*1i));
-        enhancedSpeech(start_frame:end_frame)=enhancedSpeech(start_frame:end_frame)+enhanced_frame./window;
+        enhanced_frame=ifft(sqrt(enhanced_psd.*(L)).*exp(phases_frame*1i));
+        enhancedSpeech(start_frame:end_frame)=enhancedSpeech(start_frame:end_frame)+enhanced_frame;
     end
     reconstructed_signal=real(enhancedSpeech*Overlap);
 end
