@@ -112,10 +112,10 @@ L=640;
 win=hamming(L);
 
 % save compound signals
-audiowrite('./signals/spectral sub/speech_shaped_noise_speech_signal.wav', noise_speech_signal, fs)
-audiowrite('./signals/spectral sub/babble_speech_signal.wav', babble_speech_signal, fs)
-audiowrite('./signals/spectral sub/echo_noise_speech_signal.wav', echo_noise_speech_signal, fs)
-audiowrite('./signals/spectral sub/non_stationary_noise_speech_signal.wav', non_stationary_noise_speech_signal, fs)
+audiowrite('./signals/spectral_sub/speech_shaped_noise_speech_signal.wav', noise_speech_signal, fs)
+audiowrite('./signals/spectral_sub/babble_speech_signal.wav', babble_speech_signal, fs)
+audiowrite('./signals/spectral_sub/echo_noise_speech_signal.wav', echo_noise_speech_signal, fs)
+audiowrite('./signals/spectral_sub/non_stationary_noise_speech_signal.wav', non_stationary_noise_speech_signal, fs)
 
 
 %setup figure for subplots
