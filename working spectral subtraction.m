@@ -10,9 +10,8 @@ t = [1:633000]';
 non_stationary_noise = 1/2*t/200000 + (t/200000).*randn(size(t));
 compound_noise = noise(1:633000)+white_noise*0.05+0.2*sin(t)+0.3*sin(3.*t);
 
-
-
 length_noise_seconds=1.2;
+N_noise=(fs)*length_noise_seconds;
 
 %construct a clean signal of the same length for result generation
 clean_speech=compose_signal(clean,zeros(633000,1),length_noise_seconds,fs);
@@ -23,7 +22,7 @@ babble_speech_signal=compose_signal(clean,babble_noise,length_noise_seconds,fs);
 echo_noise_speech_signal=[clean;zeros(2000,1)]+echo_noise;
 non_stationary_noise_speech_signal=compose_signal(clean,non_stationary_noise,length_noise_seconds,fs);
 
-%% 
+%% choosing window, window length and alpha & beta values
 
 %setup windows and window length
 L=640;
@@ -37,16 +36,80 @@ win=hamming(L);
 alpha=3;
 beta=0.025;
 
-N_noise=(fs)*length_noise_seconds;
+
 N_clean=500000;
 spectral_subtract_enhanced=spectral_subtraction(noise_speech_signal,N_noise,L,0.5,win, alpha,beta);
 
-audiowrite("bart.wav",spectral_subtract_enhanced,fs);
+%audiowrite("bart.wav",spectral_subtract_enhanced,fs);
 
 %metrics(spectral_subtract_enhanced(N_noise+1:end), clean(1:N_clean));
+%% Noise estimation
+L=640;
+win=hamming(L);
+psd_true=10*log10(welch(noise,L,0.5,win));
 
-%% 
+length_noise_seconds=0.6;
+N_noise=(fs)*length_noise_seconds;
+psd_0_6=10*log10(welch(noise(1:N_noise),L,0.5,win));
 
+length_noise_seconds=1.2;
+N_noise=(fs)*length_noise_seconds;
+psd_1_2=10*log10(welch(noise(1:N_noise),L,0.5,win));
+
+
+
+length_noise_seconds=2.4;
+N_noise=(fs)*length_noise_seconds;
+psd_2_4=10*log10(welch(noise(1:N_noise),L,0.5,win));
+
+radians=linspace(0,pi,L/2);
+
+psd_est_fig1=figure;
+set(psd_est_fig1, 'Position', [50, 50,1800, 400]);
+subplot(1,4,1);
+plot(radians,psd_0_6(1:L/2))
+set(gca,'XTick',0:pi/4:pi) 
+set(gca,'XTickLabel',{'0','\pi/4','\pi/2','3\pi/4','\pi'})
+xlabel("Frequency(rad/sample)")
+ylabel("Magnitude(dB)")
+title("Estimate using 0.6s of the noise signal")
+
+subplot(1,4,2);
+plot(radians, psd_1_2(1:L/2))
+set(gca,'XTick',0:pi/4:pi) 
+set(gca,'XTickLabel',{'0','\pi/4','\pi/2','3\pi/4','\pi'})
+title("Estimate using 1.2s of the noise signal")
+xlabel("Frequency(rad/sample)")
+ylabel("Magnitude(dB)")
+
+
+subplot(1,4,3);
+plot(radians, psd_2_4(1:L/2))
+set(gca,'XTick',0:pi/4:pi) 
+set(gca,'XTickLabel',{'0','\pi/4','\pi/2','3\pi/4','\pi'})
+title("Estimate using 2.4s of the noise signal")
+xlabel("Frequency(rad/sample)")
+ylabel("Magnitude(dB)")
+
+subplot(1,4,4);
+plot(radians,psd_true(1:L/2))
+set(gca,'XTick',0:pi/4:pi) 
+set(gca,'XTickLabel',{'0','\pi/4','\pi/2','3\pi/4','\pi'})
+title("Estimate using full noise signal")
+xlabel("Frequency(rad/sample)")
+ylabel("Magnitude(dB)")
+
+saveas(psd_est_fig1,'./signals/spectral sub/psd_est.png')
+
+
+
+%% Now for results
+length_noise_seconds=1.2;
+N_noise=(fs)*length_noise_seconds;
+alpha=3;
+beta=0.025;
+L=640;
+win=hamming(L);
 
 % save compound signals
 audiowrite('./signals/spectral sub/speech_shaped_noise_speech_signal.wav', noise_speech_signal, fs)
@@ -57,6 +120,11 @@ audiowrite('./signals/spectral sub/non_stationary_noise_speech_signal.wav', non_
 
 %setup figure for subplots
 fig=figure;
+% Set default axes font size
+set(0, 'DefaultAxesFontSize', 14);
+
+% Set default title font size
+set(0, 'DefaultAxesTitleFontSizeMultiplier', 1.1);
 set(fig, 'Position', [50, 50,1200, 1200]);
 
 
@@ -156,7 +224,7 @@ function reconstructed_signal = spectral_subtraction(audioData, noise_length_sta
     D=floor(L*(1-Overlap));
     K=floor((N-L+D)/D);
     %calculate energy of the window
-    U=sum(window.^2).*1/length(window)
+    U=sum(window.^2).*1/length(window);
     
     %estimate noise based on starting noise samples
     psd_noise_est=welch(audioData(1:noise_length_start),L,0.5,window);
