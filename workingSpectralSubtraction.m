@@ -160,7 +160,7 @@ disp('Speech shaped noise results before filtering')
 [RMSE, SNR] = metrics(noise_speech_signal, clean_speech);
 [scores(1,[1,2])] = [RMSE, SNR];
 s_s = spectral_subtraction(noise_speech_signal,N_noise, L, 0.5,win,alpha,beta);
-audiowrite('./signals/noise_cancel/noise_cancelation_speech_shaped_noise.wav', s_s, fs);
+audiowrite('./signals/spectral_sub/spec_sub_speech_shaped_noise.wav', s_s, fs);
 disp('Speech shaped noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[1,2])] = [RMSE, SNR];
@@ -173,7 +173,7 @@ disp('Babble noise results before filtering')
 [RMSE, SNR] = metrics(babble_speech_signal, clean_speech);
 [scores(1,[3,4])] = [RMSE, SNR];
 s_s = spectral_subtraction(babble_speech_signal,N_noise, L, 0.5,win,alpha,beta);
-audiowrite('./signals/noise_cancel/noise_cancelation_babble_noise.wav', s_s, fs);
+audiowrite('./signals/spectral_sub/spec_sub_babble_noise.wav', s_s, fs);
 disp('Babble noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[3,4])] = [RMSE, SNR];
@@ -186,7 +186,7 @@ disp('echo noise results before filtering')
 [RMSE, SNR] = metrics(echo_noise_speech_signal(50000:end), [clean(50000:end);zeros(2000,1)]);
 [scores(1,[5,6])] = [RMSE, SNR];
 s_s = spectral_subtraction(echo_noise_speech_signal(50000:end),N_noise, L, 0.5,win,alpha,beta);
-audiowrite('./signals/noise_cancel/noise_cancelation_echo_noise.wav', s_s, fs);
+audiowrite('./signals/spectral_sub/spec_sub_echo_noise.wav', s_s, fs);
 disp('echo noise results after filtering')
 [RMSE, SNR] = metrics(s_s, [clean(50000:end);zeros(2000,1)]);
 [scores(2,[5,6])] = [RMSE, SNR];
@@ -199,7 +199,7 @@ disp('non-stationary noise results before filtering')
 [RMSE, SNR] = metrics(non_stationary_noise_speech_signal, clean_speech);
 [scores(1,[7,8])] = [RMSE, SNR];
 s_s = spectral_subtraction(non_stationary_noise_speech_signal,N_noise, L, 0.5,win,alpha,beta);
-audiowrite('./signals/noise_cancel/noise_cancelation_non_stationary_noise.wav', s_s, fs);
+audiowrite('./signals/spectral_sub/spec_sub_non_stationary_noise.wav', s_s, fs);
 disp('non-stationary noise results after filtering')
 [RMSE, SNR] = metrics(s_s, clean_speech);
 [scores(2,[7,8])] = [RMSE, SNR];
@@ -215,7 +215,7 @@ for i = 3:10 % Adjust this to the number of subplots in your figure
     xlim([0, 530000]); % Set x-axis limits for the current subplot
 end
 
-saveas(fig,'./signals/spectral sub/signals.png')
+saveas(fig,'./signals/spectral_sub/signals.png')
 
 
 function reconstructed_signal = spectral_subtraction(audioData, noise_length_start, L,Overlap,window, alpha, beta)
